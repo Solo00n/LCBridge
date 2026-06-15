@@ -1,0 +1,9 @@
+{
+  "name": "LCBridge",
+  "version_number": "1.1.0",
+  "website_url": "https://github.com/solo00n/LCBridge",
+  "description": "Локальный мост: отдаёт смерти, живых, полную погоду WeatherTweaks и ивент Brutal Company в стрим-оверлей по WebSocket.",
+  "dependencies": [
+    "BepInEx-BepInExPack-5.4.2100"
+  ]
+}
