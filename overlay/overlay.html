@@ -399,14 +399,14 @@
             mask-image: linear-gradient(180deg, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%);
   }
   .vic-card.expanded .vic-full { display: block; }
-  .vf-scroll { position: absolute; left: 0; right: 6px; top: 0; will-change: transform; animation: vfScroll 48s linear infinite; }
+  /* одноразовая пауза перед стартом через delay; сам цикл — бесшовный и бесконечный */
+  .vf-scroll { position: absolute; left: 0; right: 6px; top: 0; will-change: transform; animation: vfScroll 43s linear 5s infinite; }
   .vf-block { padding-bottom: 18px; }
   .vic-full:hover .vf-scroll { animation-play-state: paused; }
-  /* пауза в начале (~5с из 48с ≈ 10%), затем плавная прокрутка до -50% */
+  /* чистый линейный цикл 0 -> -50% (контент продублирован), петля незаметна */
   @keyframes vfScroll {
-    0%    { transform: translateY(0); }
-    10%   { transform: translateY(0); }
-    100%  { transform: translateY(-50%); }
+    from { transform: translateY(0); }
+    to   { transform: translateY(-50%); }
   }
 
   .vf-sec { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 2px; text-transform: uppercase; color: var(--frame-bright); margin: 18px 0 9px; border-bottom: 1px solid var(--frame-dim); padding-bottom: 5px; text-align: center; }
