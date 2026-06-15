@@ -1,9 +1,9 @@
 {
   "name": "LCBridge",
-  "version_number": "1.1.0",
+  "version_number": "1.1.1",
   "website_url": "https://github.com/solo00n/LCBridge",
-  "description": "Bridges live Lethal Company game data to a WebSocket stream overlay (monster deck, weather, run analytics).",
+  "description": "Local Lethal Company -> stream overlay bridge over WebSocket: monsters (in/out), weather (WeatherTweaks), traps, cumulative loot, per-quota & per-moon run analytics, top monster/killer. Read-only.",
   "dependencies": [
-    "BepInEx-BepInExPack-5.4.2100"
+    "BepInEx-BepInExPack-5.4.2305"
   ]
 }
