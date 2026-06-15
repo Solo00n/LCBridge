@@ -85,10 +85,12 @@ Lethal Company (+ LCBridge)  --WebSocket-->  overlay.html (в OBS)
 
 ## Установка (для игроков)
 
-> Требуется [BepInExPack](https://thunderstore.io/c/lethal-company/p/BepInEx/BepInExPack/).
+> **Требуется:**
+> - [BepInExPack](https://thunderstore.io/c/lethal-company/p/BepInEx/BepInExPack/)
+> - [StreamOverlays](https://thunderstore.io/c/lethal-company/p/Zehs/StreamOverlays/) (Zehs) — **обязательно**: часть функций оверлея не работает без него.
 
 **Через мод-менеджер** (r2modman / Thunderstore Mod Manager): найди `LCBridge`
-и установи — BepInEx подтянется автоматически.
+и установи — BepInEx и StreamOverlays подтянутся автоматически.
 
 **Вручную:**
 1. Установи BepInExPack для Lethal Company.
@@ -135,7 +137,8 @@ dotnet build -c Release
 ## Совместимость
 
 - Lethal Company + BepInEx.
-- Мягкие (необязательные) зависимости: **BrutalCompanyMinusExtraReborn**,
+- **Обязательная зависимость:** StreamOverlays (Zehs) — нужен для части функций оверлея.
+- Мягкие (необязательные): **BrutalCompanyMinusExtraReborn**,
   **WeatherTweaks / WeatherRegistry** (mrov), **ToilHead** (определяется в рантайме).
 - Оверлей — любой Chromium-браузер и OBS Browser Source.
 
@@ -150,5 +153,4 @@ dotnet build -c Release
 ## Сообщество GDLP · *Games Don't Like People*
 
 - Сайт турнира: https://solo00n.github.io/GDLP-tournament/
-- Дискорд сервер: [Coop-Hunters](https://discord.gg/gQhvFFFMER)
 - Twitch: [sOOlon](https://twitch.tv/soolon)

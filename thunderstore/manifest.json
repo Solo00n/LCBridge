@@ -1,9 +1,10 @@
 {
   "name": "LCBridge",
-  "version_number": "1.1.1",
+  "version_number": "1.1.2",
   "website_url": "https://github.com/solo00n/LCBridge",
-  "description": "Local Lethal Company -> stream overlay bridge over WebSocket: monsters (in/out), weather (WeatherTweaks), traps, cumulative loot, per-quota & per-moon run analytics, top monster/killer. Read-only.",
+  "description": "Local Lethal Company -> stream overlay bridge over WebSocket: monsters (in/out), weather (WeatherTweaks), traps, cumulative loot, per-quota & per-moon run analytics, top monster/killer. Pairs with StreamOverlays.",
   "dependencies": [
-    "BepInEx-BepInExPack-5.4.2305"
+    "BepInEx-BepInExPack-5.4.2305",
+    "Zehs-StreamOverlays-1.6.2"
   ]
 }

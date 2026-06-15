@@ -6,6 +6,10 @@ using System;
 namespace LCBridge
 {
     [BepInPlugin(GUID, NAME, VERSION)]
+    // StreamOverlays: жёсткая авто-установка задана в манифесте Thunderstore
+    // (Zehs-StreamOverlays). Здесь — мягкая, чтобы LCBridge не блокировался,
+    // даже если GUID не совпадёт. Часть функций оверлея требует StreamOverlays.
+    [BepInDependency("Zehs.StreamOverlays", BepInDependency.DependencyFlags.SoftDependency)]
     // мягкие зависимости: мост работает и без них, просто будет меньше данных
     [BepInDependency("SoftDiamond.BrutalCompanyMinusExtraReborn", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("mrov.WeatherTweaks", BepInDependency.DependencyFlags.SoftDependency)]
