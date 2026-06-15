@@ -150,4 +150,5 @@ dotnet build -c Release
 ## Сообщество GDLP · *Games Don't Like People*
 
 - Сайт турнира: https://solo00n.github.io/GDLP-tournament/
+- Дискорд сервер: [Coop-Hunters](https://discord.gg/gQhvFFFMER)
 - Twitch: [sOOlon](https://twitch.tv/soolon)
