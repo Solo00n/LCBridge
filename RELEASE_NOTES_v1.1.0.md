@@ -1,15 +1,3 @@
-# Текст для GitHub Release — LCBridge v1.1.0
-
-При создании релиза на GitHub (вкладка **Releases → Draft a new release**):
-
-- **Tag:** `v1.1.0`
-- **Release title:** `LCBridge v1.1.0`
-- **Прикрепить файл (Assets):** `LCBridge.dll` (перетащи в область вложений,
-  чтобы люди могли скачать одним кликом)
-
-Тело релиза (скопируй в поле описания) ⬇️
-
----
 
 ## LCBridge v1.1.0 🛰️
 
