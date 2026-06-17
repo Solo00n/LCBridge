@@ -399,6 +399,16 @@
             mask-image: linear-gradient(180deg, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%);
   }
   .vic-card.expanded .vic-full { display: block; }
+  /* кнопка скачивания результата: скрыта (для чистоты OBS), видна при наведении в браузере */
+  .vic-save {
+    position: absolute; bottom: 10px; right: 12px; z-index: 10;
+    font-family: 'Share Tech Mono', monospace; font-size: 12px; letter-spacing: 1px;
+    color: var(--amber); background: rgba(20,6,4,0.9); border: 1px solid var(--frame-dim);
+    border-radius: 3px; padding: 6px 12px; cursor: pointer;
+    opacity: 0; transition: opacity .2s, background .15s, box-shadow .15s; pointer-events: none;
+  }
+  #victory:hover .vic-save { opacity: 1; pointer-events: auto; }
+  .vic-save:hover { background: var(--frame-dim); color: #fff; box-shadow: 0 0 12px rgba(255,90,30,.6); }
   /* одноразовая пауза перед стартом через delay; сам цикл — бесшовный и бесконечный */
   .vf-scroll { position: absolute; left: 0; right: 6px; top: 0; will-change: transform; animation: vfScroll 43s linear 5s infinite; }
   .vf-block { padding-bottom: 18px; }
@@ -592,6 +602,7 @@
         <div class="vic-stats" id="vicStats"></div>
         <div class="vic-analytics" id="vicAnalytics"></div>
         <div class="vic-full" id="vicFull"><div class="vf-scroll" id="vfScroll"></div></div>
+        <button class="vic-save" onclick="downloadRun()" title="Скачать результат забега">⤓ Скачать результат</button>
       </div>
     </div>
   </div>
@@ -971,12 +982,16 @@
     'spring+turret':       'coil',
     'coilhead+turret':     'coil',
     'manticoil+turret':    'manticoil',
-    // BCMER slayer-версии (если приходят отдельным enemyName)
-    'nutslayer':           'nutslayer',
-    'toilslayer':          'toilslayer',
-    'springslayer':        'toilslayer',
-    'mantitoilslayer':     'mantitoilslayer',
-    'manticoilslayer':     'mantitoilslayer',
+    // BCMER slayer-версии (приходят отдельным enemyName).
+    // Slayer = только красная окраска; ИКОНКА выбирается по наличию турели:
+    //  - с турелью на голове (Toil*) → иконка toilhead
+    //  - без турели (Spring/Coil*)   → обычная иконка coil (перекрасится в красный)
+    'nutslayer':           'nutcracker',    // Nutcracker-slayer → та же иконка, красная
+    'toilslayer':          'toilhead',      // slayer-коил С турелью → иконка с турелью
+    'springslayer':        'coil',          // slayer-коил БЕЗ турели → обычный coil
+    'coilslayer':          'coil',
+    'mantitoilslayer':     'mantitoil',     // manti-slayer с турелью
+    'manticoilslayer':     'manticoil',
     // точные имена -> ключи (надёжнее подстрок; чинит имена с пробелами/слитные)
     'spring':              'coil',          // Coil-Head (внутр. имя "Spring")
     'coilhead':            'coil',
@@ -984,7 +999,7 @@
     'cadaverbloom':        'cadaverbloom',
     'cadavergrowth':       'cadaver',
     'oldbird':             'oldbird',
-    'redlocust':           'redlocust',
+    'redlocust':           '__hidden__',
     'roaminglocust':       '__hidden__',
     'feiopar':             'feiopar',
     'flowersnake':         'tulip',
@@ -1014,7 +1029,9 @@
     return null;
   }
   // безвредная мелочь — не показываем совсем (мельтешит и бесполезна)
-  const MOB_HIDE = ['manticoil','locust','docile','roaminglocust','lasso','vain','shroud'];
+  // прячем только мелких летающих «птичек» (manticoil/locust) — их много и они засоряют
+  // песочные часы. Old Bird (Radmech) НЕ прячем — это серьёзный монстр.
+  const MOB_HIDE = ['manticoil','locust','docile','roaminglocust','redlocust','lasso','vain','shroud'];
   function mobHidden(name) {
     const raw = (name || '').toLowerCase();
     // турельные / slayer-версии всегда показываем (Manti-Toil, MantiSlayer и т.п.)
@@ -1036,7 +1053,7 @@
     const m = s.match(/^(.*?)(?:\s+x(\d+))?$/i);
     let nm = (m ? m[1] : s).trim();
     const cnt = m && m[2] ? parseInt(m[2]) : 1;
-    const hasTurret = /\+turret/i.test(nm);
+    const hasTurret = /\+turret/i.test(nm) || /toil/i.test(nm);  // Toil* = коил С турелью на голове
     const isSlayer  = /slayer/i.test(nm);
     const isKamikaze = /kamikaz/i.test(nm);
     // снимаем суффиксы турели/слеера, оставляя базовое имя
@@ -1457,11 +1474,89 @@
     const aEl = document.getElementById('vicAnalytics');
     if (aEl) { aEl.style.display = 'none'; aEl.innerHTML = ''; }
   }
+
+  // ===== СОХРАНЕНИЕ РЕЗУЛЬТАТА ЗАБЕГА =====
+  // формирует текстовый отчёт по забегу из всех доступных данных
+  function buildRunReport() {
+    const lootVal = (auto.lootValue ?? 0);
+    const deaths = (bridge.connected && bridge.deaths != null) ? bridge.deaths : manual.deaths;
+    const timeStr = (typeof timerSec === 'number' && timerSec > 0) ? fmtTime(timerSec) : '—';
+    const quotasDone = Math.max(0, (auto.quotaIndex || 1) - 1); // сдано квот
+    const R = bridge.run || {};
+    const fmt = s => { const m=(s/60|0), ss=s%60; return m+':'+String(ss).padStart(2,'0'); };
+    const now = new Date();
+    const stamp = now.toLocaleString('ru-RU');
+    let t = '';
+    t += '═══════════════════════════════\n';
+    t += '   GDLP — РЕЗУЛЬТАТ ЗАБЕГА\n';
+    t += '═══════════════════════════════\n';
+    t += 'Дата: ' + stamp + '\n\n';
+    t += 'ИТОГО ДЛЯ ОЧКОВ:\n';
+    t += '  Время:   ' + timeStr + '\n';
+    t += '  Лут:     $' + lootVal + '\n';
+    t += '  Смерти:  ' + deaths + '\n';
+    t += '  Квоты:   ' + quotasDone + ' / 3\n\n';
+    if (R.quotas && R.quotas.length) {
+      t += 'ПО КВОТАМ:\n';
+      R.quotas.forEach((q,i) => {
+        t += '  Квота ' + (i+1) + ': лут $' + (q.loot ?? '—')
+           + ', время ' + (q.time!=null?fmt(q.time):'—')
+           + ', смерти ' + (q.deaths ?? '—') + '\n';
+      });
+      t += '\n';
+    }
+    if (R.timeline && R.timeline.length) {
+      t += 'ХРОНИКА ПО ДНЯМ:\n';
+      R.timeline.forEach(d => {
+        t += '  День ' + (d.day ?? '?') + ': ' + (d.moon || '—')
+           + (d.weather ? ' (' + d.weather + ')' : '')
+           + (d.event ? ' — ' + d.event : '') + '\n';
+      });
+      t += '\n';
+    }
+    if (R.inside != null && R.outside != null) {
+      t += 'ОБСТАНОВКА:\n';
+      t += '  Комплекс: ' + fmt(R.inside) + '\n';
+      t += '  Улица:    ' + fmt(R.outside) + '\n\n';
+    }
+    t += '═══════════════════════════════\n';
+    return t;
+  }
+
+  // сохраняет отчёт в localStorage (резерв) — переживает закрытие вкладки
+  function persistRun() {
+    try {
+      const report = buildRunReport();
+      const key = 'gdlp_run_' + Date.now();
+      localStorage.setItem(key, report);
+      localStorage.setItem('gdlp_run_last', report);  // быстрый доступ к последнему
+    } catch (e) { /* localStorage может быть недоступен в OBS — не критично */ }
+  }
+
+  // скачивание отчёта файлом (работает в обычном браузере; в OBS клика нет)
+  function downloadRun() {
+    try {
+      const report = buildRunReport();
+      const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const d = new Date();
+      const fn = 'GDLP_забег_' + d.getFullYear() + '-' +
+        String(d.getMonth()+1).padStart(2,'0') + '-' +
+        String(d.getDate()).padStart(2,'0') + '_' +
+        String(d.getHours()).padStart(2,'0') + String(d.getMinutes()).padStart(2,'0') + '.txt';
+      a.href = url; a.download = fn;
+      document.body.appendChild(a); a.click();
+      setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+    } catch (e) {}
+  }
+
   function showVictory() {
     const el = document.getElementById('victory');
     if (!el) return;
     buildVictoryStats();
     const hasAnalytics = buildFullAnalytics();
+    persistRun();  // резервная копия результата в localStorage (на случай потери)
     el.style.display = 'flex';
     const card = el.querySelector('.vic-card');
     // если есть данные забега — раскрываем панель с авто-прокруткой
@@ -1469,10 +1564,13 @@
     // перезапустить анимацию карточки
     card.style.animation = 'none'; void card.offsetWidth; card.style.animation = '';
     launchFireworks();
-    // авто-скрытие: дольше, если показываем аналитику (даём прокрутиться)
+    // финальная аналитика НЕ скрывается автоматически — висит до начала нового забега
+    // (иначе команда может потерять данные забега). Сброс происходит только при ResetShip/новом сейве.
     clearTimeout(window._vicHideT);
-    const hideAfter = hasAnalytics ? 60000 : 13000;
-    window._vicHideT = setTimeout(() => { el.style.display = 'none'; }, hideAfter);
+    if (!hasAnalytics) {
+      // без данных аналитики прячем простой баннер через время, как раньше
+      window._vicHideT = setTimeout(() => { el.style.display = 'none'; }, 13000);
+    }
   }
 
   // строит панель полной аналитики из bridge.run; возвращает true если данные есть
@@ -1515,6 +1613,9 @@
     // порядок появления: сначала редкие, в конце — самые частые (их больше и крупнее).
     if (R.monsters && R.monsters.length) {
       const withIco = [...R.monsters].filter(m => {
+        // прячем мелочь/птиц (manticoil, locust и т.п.) — как и в строке мобов,
+        // чтобы они не заполняли песочные часы и не пугали количеством
+        if (typeof mobHidden==='function' && mobHidden(m.name)) return false;
         const u = (typeof mobImg==='function') ? mobImg(m.name) : null; return !!u;
       });
       if (withIco.length) {
@@ -1550,7 +1651,15 @@
         const sumRows = [];
         const tk = clean(bridge.topKiller);
         if (tk) sumRows.push({ ico: mkIco(tk), k: 'ЧАЩЕ ВСЕГО УБИВАЛ', v: tk });
-        const tm = clean(bridge.topMonster);
+        // «чаще встречался» берём из ТЕХ ЖЕ данных банки (макс. по числу особей),
+        // чтобы он гарантированно совпадал с самым большим в песочных часах,
+        // а не приходил отдельным полем, которое может указывать на скрытую птицу
+        let tm = '';
+        if (withIco.length) {
+          const top = [...withIco].sort((a,b)=>cnt0(b)-cnt0(a))[0];
+          tm = clean(top && top.name);
+        }
+        if (!tm) tm = clean(bridge.topMonster);
         if (tm) sumRows.push({ ico: mkIco(tm), k: 'ЧАЩЕ ВСЕГО ВСТРЕЧАЛСЯ', v: tm });
         if (sumRows.length) {
           h += '<div class="vic-analytics vf-summary" style="display:grid">' + sumRows.map(r =>
@@ -1962,11 +2071,15 @@
       ],
       peak:11, inside:3200, outside:2290, runSec:5490,
       timeline: [
-        '1|day|Titan','1|event|BerserkTurrets','1|death|Nutcracker@Titan',
-        '2|day|Rend','2|event|ECLIPSED',
-        '3|day|Dine','3|death|Eyeless Dog@Dine',
-        '4|day|Titan','4|event|EasterEggs','4|death|Bunker Spider@Titan',
-        '5|day|Adamance','5|death|Coil-Head@Adamance','6|day|Titan'
+        '1|day|Experimentation','1|event|BerserkTurrets','1|death|Nutcracker@Experimentation',
+        '2|day|Vow','2|event|ECLIPSED',
+        '3|day|Titan','3|death|Eyeless Dog@Titan',
+        '4|day|Rend','4|event|EasterEggs','4|death|Bunker Spider@Rend',
+        '5|day|Dine','5|death|Coil-Head@Dine',
+        '6|day|Adamance','6|event|Flooded',
+        '7|day|Titan','7|death|Forest Keeper@Titan',
+        '8|day|Artifice','8|event|BerserkTurrets','8|death|Masked@Artifice',
+        '9|day|Titan','9|death|Jester@Titan'
       ]
     };
     if (typeof timerSec === 'number') { timerSec = 5490; renderTimer(); }
