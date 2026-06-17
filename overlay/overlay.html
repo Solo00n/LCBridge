@@ -399,16 +399,6 @@
             mask-image: linear-gradient(180deg, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%);
   }
   .vic-card.expanded .vic-full { display: block; }
-  /* кнопка скачивания результата: скрыта (для чистоты OBS), видна при наведении в браузере */
-  .vic-save {
-    position: absolute; bottom: 10px; right: 12px; z-index: 10;
-    font-family: 'Share Tech Mono', monospace; font-size: 12px; letter-spacing: 1px;
-    color: var(--amber); background: rgba(20,6,4,0.9); border: 1px solid var(--frame-dim);
-    border-radius: 3px; padding: 6px 12px; cursor: pointer;
-    opacity: 0; transition: opacity .2s, background .15s, box-shadow .15s; pointer-events: none;
-  }
-  #victory:hover .vic-save { opacity: 1; pointer-events: auto; }
-  .vic-save:hover { background: var(--frame-dim); color: #fff; box-shadow: 0 0 12px rgba(255,90,30,.6); }
   /* одноразовая пауза перед стартом через delay; сам цикл — бесшовный и бесконечный */
   .vf-scroll { position: absolute; left: 0; right: 6px; top: 0; will-change: transform; animation: vfScroll 43s linear 5s infinite; }
   .vf-block { padding-bottom: 18px; }
@@ -602,7 +592,6 @@
         <div class="vic-stats" id="vicStats"></div>
         <div class="vic-analytics" id="vicAnalytics"></div>
         <div class="vic-full" id="vicFull"><div class="vf-scroll" id="vfScroll"></div></div>
-        <button class="vic-save" onclick="downloadRun()" title="Скачать результат забега">⤓ Скачать результат</button>
       </div>
     </div>
   </div>
@@ -629,9 +618,6 @@
 <!-- баннер победы в челлендже (3-я квота) -->
 <div class="hint" id="hintBtn">⚙ панель [H]</div>
 <div id="dbg" style="position:fixed; bottom:6px; left:12px; font-family:'Share Tech Mono',monospace; font-size:11px; color:#7fd97f; background:rgba(0,0,0,0.7); padding:3px 8px; border-radius:3px; z-index:200; display:none;"></div>
-<button id="dbgConfetti" onclick="launchConfetti()" style="position:fixed; bottom:30px; left:12px; font-family:'Share Tech Mono',monospace; font-size:12px; color:#fff; background:#c43022; border:1px solid #ff5141; border-radius:3px; padding:4px 10px; cursor:pointer; z-index:200; display:none;">🎉 тест конфетти</button>
-<button id="dbgVictory" onclick="demoVictory()" style="position:fixed; bottom:56px; left:12px; font-family:'Share Tech Mono',monospace; font-size:12px; color:#fff; background:#c43022; border:1px solid #ff5141; border-radius:3px; padding:4px 10px; cursor:pointer; z-index:200; display:none;">🏆 пример аналитики</button>
-<button id="dbgTurret" onclick="demoTurret()" style="position:fixed; bottom:82px; left:12px; font-family:'Share Tech Mono',monospace; font-size:12px; color:#fff; background:#c43022; border:1px solid #ffb000; border-radius:3px; padding:4px 10px; cursor:pointer; z-index:200; display:none;">🔫 тест турелей</button>
 
 <div id="panel">
   <div class="pgroup">
@@ -657,6 +643,18 @@
   <div class="pgroup">
     <h4>СБРОС РУЧНОГО</h4>
     <button onclick="resetManual()" style="border-color:var(--red);color:var(--red)">RESET</button>
+  </div>
+  <div class="pgroup">
+    <h4>РЕЗУЛЬТАТ ЗАБЕГА</h4>
+    <div class="pbtns"><button onclick="downloadRun()" style="border-color:var(--amber);color:var(--amber)">⤓ скачать отчёт</button></div>
+  </div>
+  <div class="pgroup">
+    <h4>ТЕСТ / ДЕБАГ</h4>
+    <div class="pbtns">
+      <button onclick="demoVictory()">🏆 аналитика</button>
+      <button onclick="demoTurret()">🔫 турели</button>
+      <button onclick="launchConfetti()">🎉 конфетти</button>
+    </div>
   </div>
   <div class="pnote">
     Две связи: <b style="color:var(--red)">LIVE</b> — StreamOverlays (порт 8000): луна, квота, лут, день.
@@ -2087,6 +2085,8 @@
     showVictory();
   }
   window.demoVictory = demoVictory;
+  window.downloadRun = downloadRun;
+  window.launchConfetti = launchConfetti;
 
   // ── Задача 3: предпросмотр ПАСХАЛКИ (ивент EasterEggs) — по оверлею раскидываются
   //    пиксельные яйца. Вызвать в консоли: demoEaster()  /  выключить: demoEaster(false)
@@ -2258,15 +2258,8 @@
     if (e.code === 'KeyH') { togglePanel(); return; }
     if (e.code === 'KeyD') {
       const dbg = document.getElementById('dbg');
-      const btn = document.getElementById('dbgConfetti');
-      const btnV = document.getElementById('dbgVictory');
-      const btnT = document.getElementById('dbgTurret');
       if (dbg) {
-        const show = dbg.style.display === 'none';
-        dbg.style.display = show ? 'block' : 'none';
-        if (btn) btn.style.display = show ? 'block' : 'none';
-        if (btnV) btnV.style.display = show ? 'block' : 'none';
-        if (btnT) btnT.style.display = show ? 'block' : 'none';
+        dbg.style.display = dbg.style.display === 'none' ? 'block' : 'none';
         render();
       }
       return;
