@@ -1,6 +1,6 @@
 {
   "name": "LCBridge",
-  "version_number": "1.1.1",
+  "version_number": "1.1.3",
   "website_url": "https://github.com/solo00n/LCBridge",
   "description": "Local Lethal Company -> stream overlay bridge over WebSocket. Pairs with StreamOverlays.",
   "dependencies": [

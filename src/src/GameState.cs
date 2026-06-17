@@ -461,10 +461,16 @@ namespace LCBridge
         {
             try
             {
-                // TimeOfDay хранит количество отработанных дней (quota period)
+                // Сквозной номер дня за ВСЮ компанию (1-based), а не день внутри квоты.
+                // gameStats.daysSpent растёт на каждый реальный игровой день и НЕ сбрасывается
+                // между квотами — поэтому за 3 квоты по 3 дня получаем сквозные 1..9,
+                // и дни разных квот не схлопываются в хронике.
+                var sor = StartOfRound.Instance;
+                if (sor != null && sor.gameStats != null)
+                    return sor.gameStats.daysSpent + 1; // daysSpent 0-based → день 1 на первой высадке
+                // запасной вариант, если gameStats недоступен
                 var tod = TimeOfDay.Instance;
                 if (tod == null) return 1;
-                // daysUntilDeadline + прошедшие; берём простое приближение — номер дня в квоте
                 return tod.daysUntilDeadline >= 0 ? (3 - tod.daysUntilDeadline) : 1;
             }
             catch { return 1; }

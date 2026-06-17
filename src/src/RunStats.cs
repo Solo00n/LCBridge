@@ -146,8 +146,11 @@ namespace LCBridge
                     else _secOutside++;
                 }
 
-                // --- таймлайн: смена дня и смена ивента ---
-                if (day != _lastDayLogged && day > 0)
+                // --- таймлайн: запись дня привязана к РЕАЛЬНОЙ посадке на луну ---
+                // фиксируем день только когда корабль на луне и её название известно.
+                // так мгновенный отлёт (без высадки) не создаёт пустую запись,
+                // а сквозной day (daysSpent) гарантирует уникальность каждого дня 1..9.
+                if (onMoon && !string.IsNullOrEmpty(moon) && moon != "—" && day > 0 && day != _lastDayLogged)
                 {
                     _lastDayLogged = day;
                     _timeline.Add($"{day}|day|{moon}");
@@ -231,7 +234,7 @@ namespace LCBridge
 
                 // таймлайн
                 sb.Append("\"timeline\":[");
-                for (int i = 0; i < _timeline.Count && i < 60; i++)
+                for (int i = 0; i < _timeline.Count && i < 120; i++)
                 {
                     if (i > 0) sb.Append(',');
                     sb.Append(JsonStr(_timeline[i]));
